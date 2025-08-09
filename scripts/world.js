@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { SimplexNoise } from "three/examples/jsm/Addons.js";
 
 const geometry = new THREE.BoxGeometry();
 const material = new THREE.MeshLambertMaterial({color: 0x00d000});
@@ -14,7 +15,15 @@ export class World extends THREE.Group {
    */
   //Data contains what each block is at each x,y,z positions
   data = [];
-  threshold = 0.5;
+  //threshold = 0.5;
+
+  params = {
+    terrain: {
+      scale: 30,
+      magnitude: 0.5,
+      offset: 0.2
+    }
+  };
 
   constructor(size={width:64,height:32}) {
     super();
@@ -23,12 +32,13 @@ export class World extends THREE.Group {
 
   //Generates world data and meshes
   generate() {
+    this.initializeTerrain();
     this.generateTerrain();
     this.generateMeshes();
   }
 
-  //Generate world data
-  generateTerrain() {
+  //Initializing the world terrain data
+  initializeTerrain() {
     this.data = []; //resetting the world
     for(let x=0;x<this.size.width;x++) {
       const slice = [];
@@ -36,13 +46,40 @@ export class World extends THREE.Group {
         const row = [];
         for(let z=0;z<this.size.width;z++) {
           row.push({ //Object for block
-            id: Math.random() > this.threshold ? 1:0,
+            //id: Math.random() > this.threshold ? 1:0, //For noises
+            id: 0,
             instanceId: null
           });
         }
         slice.push(row); //Building the world row by row and concatinating all the row to build the slice and concatinating them to build the world
       }
       this.data.push(slice);
+    }
+  }
+
+  generateTerrain() {
+    const simplex = new SimplexNoise();
+    for(let x=0;x<this.size.width;x++) {
+      for(let z=0;z<this.size.width;z++) {
+
+        //Compute noise value at x,z position
+        const value = simplex.noise(
+          x / this.params.terrain.scale, //Larger the scale ,the lesser the noise changes over a particular distance
+          z / this.params.terrain.scale
+        );
+
+        //Scale the noise based on magnitude qand offset
+        const scaledNoise = this.params.terrain.offset + this.params.terrain.magnitude * value;
+
+        //Compute the height of the terrain at x,z position
+        let height = Math.floor(this.size.height * scaledNoise);
+        height = Math.max(0, Math.min(height, this.size.height-1));
+
+        //Fill in the blocks at each height levels
+        for(let y=0;y<=height;y++) {
+          this.setBlockId(x,y,z,1);
+        }
+      }
     }
   }
  
