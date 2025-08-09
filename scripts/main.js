@@ -1,12 +1,18 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
 import {World} from "./world";
+import Stats from "three/examples/jsm/libs/stats.module.js";
+import { createUI } from "./ui";
+
+//Statistics of GPU
+const stats = new Stats();
+document.body.append(stats.dom);
 
 //Renderer
 const renderer = new THREE.WebGLRenderer();
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth,window.innerHeight);
-renderer.setClearColor(0x80a0e0);
+renderer.setClearColor(0x80a0e0); //Sky Color
 document.body.appendChild(renderer.domElement);
 
 //Camera
@@ -43,11 +49,8 @@ function setupLights() {
 //Render loop
 function animate() {
   requestAnimationFrame(animate);
-  /*
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
-  */
   renderer.render(scene,camera);
+  stats.update();
 }
 
 //Responsiveness
@@ -58,4 +61,5 @@ window.addEventListener('resize', () => {
 })
 
 setupLights();
+createUI(world);
 animate();
