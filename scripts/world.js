@@ -14,6 +14,7 @@ export class World extends THREE.Group {
    */
   //Data contains what each block is at each x,y,z positions
   data = [];
+  threshold = 0.5;
 
   constructor(size={width:64,height:32}) {
     super();
@@ -35,7 +36,7 @@ export class World extends THREE.Group {
         const row = [];
         for(let z=0;z<this.size.width;z++) {
           row.push({ //Object for block
-            id: 1,
+            id: Math.random() > this.threshold ? 1:0,
             instanceId: null
           });
         }
